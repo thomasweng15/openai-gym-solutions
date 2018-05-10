@@ -9,7 +9,7 @@ class QCartPoleSolver():
     def __init__(self):
         self.env = gym.make('CartPole-v1')
 
-        self.buckets = (3, 1, 6, 3)
+        self.buckets = (1, 1, 6, 3)
         self.q = np.zeros(self.buckets + (self.env.action_space.n,))
 
     def discretize(self, obs):
