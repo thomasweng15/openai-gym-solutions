@@ -11,9 +11,9 @@ class QNetwork:
     def __init__(self, state_dim, action_dim):
         self.q = Sequential()
         self.q.add(Dense(units=state_dim*3, activation='relu', input_dim=state_dim))
-        # self.q.add(Dense(units=state_dim*3, activation='relu'))
+        self.q.add(Dense(units=state_dim, activation='relu'))
         self.q.add(Dense(units=action_dim, activation=None))
-        self.q.compile(loss='binary_crossentropy',
+        self.q.compile(loss='categorical_crossentropy',
             optimizer='adam')
 
     def predict(self, state):
@@ -40,10 +40,9 @@ class QCartPoleSolver():
     def choose_action(self, state, explore_rate):
         return self.env.action_space.sample() if (np.random.random() < explore_rate) else np.argmax(self.q_network.predict(state))
 
-    def update_network(self, curr_state, action, reward, next_state):
-        new_q = reward + self.discount_rate * np.max(self.q_network.predict(next_state))
+    def update_network(self, curr_state, action, reward, next_state, learning_rate):
         target = self.q_network.predict(curr_state)
-        target[0][action] = new_q
+        target[0][action] += learning_rate * (reward + self.discount_rate * np.max(self.q_network.predict(next_state)) - target[0][action])
         self.q_network.update(target, curr_state)
 
     def run(self):
@@ -61,7 +60,7 @@ class QCartPoleSolver():
                 obs, reward, done, _ = self.env.step(action)
 
                 next_state = obs.reshape(1, -1)
-                self.update_network(curr_state, action, reward, next_state)
+                self.update_network(curr_state, action, reward, next_state, learning_rate)
 
                 curr_state = next_state
                 episode_rewards += reward
