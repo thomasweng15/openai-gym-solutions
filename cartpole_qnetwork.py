@@ -6,14 +6,12 @@ from keras.layers import Dense
 
 # Referenced https://medium.com/@tuzzer/follow-up-cart-pole-balancing-with-q-network-976d13f88d2f
 
-
 class QNetwork:
 
     def __init__(self, state_dim, action_dim):
         self.q = Sequential()
         self.q.add(Dense(units=state_dim*3, activation='relu', input_dim=state_dim))
         self.q.add(Dense(units=state_dim*3, activation='relu'))
-        # self.q.add(Dense(units=state_dim*3, activation='relu'))
         self.q.add(Dense(units=action_dim, activation=None))
         self.q.compile(loss='mean_squared_error',
             optimizer='adam',
@@ -41,12 +39,9 @@ class QCartPoleSolver():
         return max(0.1, min(1.0, 1.0 - math.log10((t + 1) / 25)))
 
     def choose_action(self, state, explore_rate):
-        state = state.reshape(1, -1)
         return self.env.action_space.sample() if (np.random.random() < explore_rate) else np.argmax(self.q_network.predict(state))
 
     def update_network(self, curr_state, action, reward, next_state):
-        next_state = next_state.reshape(1, -1)
-        curr_state = curr_state.reshape(1, -1)
         new_q = reward + self.discount_rate * np.max(self.q_network.predict(next_state))
         target = self.q_network.predict(curr_state)
         print(target)
@@ -56,7 +51,7 @@ class QCartPoleSolver():
     def run(self):
         rewards = []
         for i in range(1000):
-            curr_state = self.env.reset()
+            curr_state = self.env.reset().reshape(1, -1)
 
             learning_rate = self.get_learning_rate(i)
             explore_rate = self.get_explore_rate(i)
@@ -67,7 +62,7 @@ class QCartPoleSolver():
                 action = self.choose_action(curr_state, explore_rate)
                 obs, reward, done, _ = self.env.step(action)
 
-                next_state = obs
+                next_state = obs.reshape(1, -1)
                 self.update_network(curr_state, action, reward, next_state)
 
                 curr_state = next_state
