@@ -9,11 +9,11 @@ from keras.layers import Dense
 
 class QNetwork:
 
-    def __init__(self, next_state_dim, action_dim):
+    def __init__(self, state_dim, action_dim):
         self.q = Sequential()
         self.q.add(Dense(units=state_dim*3, activation='relu', input_dim=state_dim))
         self.q.add(Dense(units=state_dim*3, activation='relu'))
-        self.q.add(Dense(units=state_dim*3, activation='relu'))
+        # self.q.add(Dense(units=state_dim*3, activation='relu'))
         self.q.add(Dense(units=action_dim, activation=None))
         self.q.compile(loss='mean_squared_error',
             optimizer='adam',
@@ -30,7 +30,7 @@ class QCartPoleSolver():
         self.env = gym.make('CartPole-v1')
         self.discount_rate = 0.99
 
-        next_state_dim = self.env.observation_space.shape[0] # Number of dims per layer
+        state_dim = self.env.observation_space.shape[0] # Number of dims per layer
         action_dim = self.env.action_space.n
         self.q_network = QNetwork(state_dim, action_dim)
 
@@ -41,12 +41,16 @@ class QCartPoleSolver():
         return max(0.1, min(1.0, 1.0 - math.log10((t + 1) / 25)))
 
     def choose_action(self, state, explore_rate):
+        state = state.reshape(1, -1)
         return self.env.action_space.sample() if (np.random.random() < explore_rate) else np.argmax(self.q_network.predict(state))
 
     def update_network(self, curr_state, action, reward, next_state):
+        next_state = next_state.reshape(1, -1)
+        curr_state = curr_state.reshape(1, -1)
         new_q = reward + self.discount_rate * np.max(self.q_network.predict(next_state))
         target = self.q_network.predict(curr_state)
-        target[action] = new_q
+        print(target)
+        target[0][action] = new_q
         self.q_network.update(target, curr_state)
 
     def run(self):
@@ -59,7 +63,7 @@ class QCartPoleSolver():
             episode_rewards = 0
 
             for j in range(500):
-                # self.env.render()
+                self.env.render()
                 action = self.choose_action(curr_state, explore_rate)
                 obs, reward, done, _ = self.env.step(action)
 
