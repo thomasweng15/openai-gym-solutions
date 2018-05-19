@@ -11,17 +11,16 @@ class QNetwork:
     def __init__(self, state_dim, action_dim):
         self.q = Sequential()
         self.q.add(Dense(units=state_dim*3, activation='relu', input_dim=state_dim))
-        self.q.add(Dense(units=state_dim*3, activation='relu'))
+        # self.q.add(Dense(units=state_dim*3, activation='relu'))
         self.q.add(Dense(units=action_dim, activation=None))
-        self.q.compile(loss='mean_squared_error',
-            optimizer='adam',
-            metrics=['accuracy'])
+        self.q.compile(loss='binary_crossentropy',
+            optimizer='adam')
 
     def predict(self, state):
         return self.q.predict(state)
 
     def update(self, target, curr_state):
-        return self.q.fit(curr_state, target)
+        return self.q.fit(curr_state, target, verbose=0)
 
 class QCartPoleSolver():
     def __init__(self):
@@ -44,7 +43,6 @@ class QCartPoleSolver():
     def update_network(self, curr_state, action, reward, next_state):
         new_q = reward + self.discount_rate * np.max(self.q_network.predict(next_state))
         target = self.q_network.predict(curr_state)
-        print(target)
         target[0][action] = new_q
         self.q_network.update(target, curr_state)
 
