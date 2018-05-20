@@ -3,7 +3,6 @@ import math
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from collections import deque
 
 # Referenced https://medium.com/@tuzzer/follow-up-cart-pole-balancing-with-q-network-976d13f88d2f
 
