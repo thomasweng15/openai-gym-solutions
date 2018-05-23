@@ -35,8 +35,8 @@ class QNetwork:
     def predict(self, state):
         return self.q.predict(state[:,-2:])
 
-    def update(self, target, curr_state):
-        return self.q.fit(np.array(curr_state), np.array(target), verbose=0)
+    def update(self, target, curr_state, verbose):
+        return self.q.fit(np.array(curr_state), np.array(target), verbose=verbose)
 
 class QCartPoleSolver():
     def __init__(self):
